@@ -18,7 +18,7 @@ Below is an image obtained from "Compilers Principles, Techniques and Tools"[^1]
 ![[CompilerPhases.png|Phases of a compiler  ]]
 
 ## 2.1 Lexical Analyser
-**Token** - A pair with token name and an optional attribute ```⟨ token-name, attribute-value ⟩```
+**Token** - A pair with token name and an optional attribute  ```⟨ token-name, attribute-value ⟩```
 **Pattern** - Description of the form that the lexemes of a token may take
 **Lexeme** - Sequence of characters that match the pattern of a token
 ### 2.1.1 Converting from Lexemes to Tokens
@@ -57,6 +57,59 @@ The lexical analyser is part of the compiler so will need to do extra jobs befor
 	- One way to do this is to keep a copy of the source so that error messages can be inseted into the copy
 
 These are called "Scanning" and are part of the process, this is done before lexical analysis
+
+### Symbol Table
+Note to self: the symbol table is much harder than I remeber it being
+A symbol table is a datastructure storing information about the symbol. Symbol tables usually need to support the same identifier appearing multiple times.
+
+Each scope will have it's own declared symbol table. 
+
+#### Scopes
+Each scope will have its own symbol table - how can I keep track of this
+
+### Symbol Tables in Rust
+The symbol table could be an array of a structs, some implemntations use hash tables
+```Rust
+struct SymbolTableEntry {
+	identifier : String,
+}
+
+struct SymbolTableNode {
+	mut  
+```
+
+for the type to be something we mayst have an enum for types that are implemented
+
+```Rust
+enum CType {
+	INT,
+}
+```
+### Representing a Token in Rust
+The type of the Token should be an enum and the token itself should be stored in the struct, the maybe type may be worth considering
+```rust
+enum TokenCategory {
+	NUMBER,
+	RETURN,
+	IDENTIFIER,
+	KEYWORD_INT,
+	PLUS,
+	SEMI_COLON,
+	LEFT_CURLY_BRACE,
+	RIGHT_CURLY_BRACE,
+}
+
+union AttributeValue {
+	int_val : i32,
+}
+
+struct Token {
+	category : TokenCategory,
+	attribute_value : Option<AttributeValue>,
+}
+```
+
+Also shared reference 
 ## 2.2 Syntax Analyser
 
 ## 2.3 Semantic Analyser
