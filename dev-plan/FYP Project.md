@@ -21,6 +21,9 @@ Below is an image obtained from "Compilers Principles, Techniques and Tools"[^1]
 **Token** - A pair with token name and an optional attribute  ```⟨ token-name, attribute-value ⟩```
 **Pattern** - Description of the form that the lexemes of a token may take
 **Lexeme** - Sequence of characters that match the pattern of a token
+
+### Output of the Lexer
+
 ### 2.1.1 Converting from Lexemes to Tokens
 Here the program will be read and the characters will be grouped into lexemes, a lexeme is a sequence of characters that match the pattern for a token. Each lexeme will have a token produced from it in the following form:
 ```⟨ token-name, attribute-value ⟩```[^1] 
@@ -59,10 +62,11 @@ The lexical analyser is part of the compiler so will need to do extra jobs befor
 These are called "Scanning" and are part of the process, this is done before lexical analysis
 
 ### Symbol Table
-Note to self: the symbol table is much harder than I remeber it being
-A symbol table is a datastructure storing information about the symbol. Symbol tables usually need to support the same identifier appearing multiple times.
+A symbol table is a datastructure storing information about the symbol. Symbol tables usually need to support the same identifier appearing multiple times. Each scope will have it's own declared symbol table. 
 
-Each scope will have it's own declared symbol table. 
+Some approaches seem to begin to implement the symbol table in the lexical analysis phase[^1] however other implemetnations implement the symbol table starting in the Semantic Analysis phase[^2] 
+
+The advantage of doing the symbol table in the Semantic Analysis phase is that there will be less problems with ownership in rust (or I am being lazy and leaving the problem to future me).
 
 #### Scopes
 Each scope will have its own symbol table - how can I keep track of this
@@ -71,14 +75,17 @@ Each scope will have its own symbol table - how can I keep track of this
 The symbol table could be an array of a structs, some implemntations use hash tables
 ```Rust
 struct SymbolTableEntry {
-	identifier : String,
+	// Info here
+	cType : CType,
 }
 
 struct SymbolTableNode {
-	mut  
+	entries : HashMap<String, SymbolTableEntry>,
+	parent_scope : Option<&SymbolTymbolTableNode>
+}
 ```
 
-for the type to be something we mayst have an enum for types that are implemented
+for the type to be something we must have an enum for types that are implemented
 
 ```Rust
 enum CType {
@@ -86,7 +93,9 @@ enum CType {
 }
 ```
 ### Representing a Token in Rust
-The type of the Token should be an enum and the token itself should be stored in the struct, the maybe type may be worth considering
+The type of the Token should be an enum and the token itself should be stored in the struct, the maybe type may be worth considering. 
+
+The `AttributeValue` should be a `union` because a Token can only be of one type therefore the `AttributrValue` shoulf only be of one tyoe (obviously).
 ```rust
 enum TokenCategory {
 	NUMBER,
@@ -106,6 +115,7 @@ union AttributeValue {
 struct Token {
 	category : TokenCategory,
 	attribute_value : Option<AttributeValue>,
+	symbole_table_entry : Option<&SymbolTableEntry> // Only if using symbol table in 
 }
 ```
 
@@ -124,3 +134,4 @@ Also shared reference
 
 # 3 References
 [^1]: Aho, Lam, Sethi, Ullman, 2014, Compilers Principles, Techniques, and Tools Second Edition
+[^2]: Andrew W.Appel, 1997, Modern Compiler Implementation in C
