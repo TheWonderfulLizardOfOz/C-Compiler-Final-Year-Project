@@ -68,6 +68,8 @@ Some approaches seem to begin to implement the symbol table in the lexical analy
 
 The advantage of doing the symbol table in the Semantic Analysis phase is that there will be less problems with ownership in rust (or I am being lazy and leaving the problem to future me).
 
+However, if we do this the identifier names still need to be stored so that they can be used in the symbol table later.
+
 #### Scopes
 Each scope will have its own symbol table - how can I keep track of this
 
@@ -97,7 +99,7 @@ The type of the Token should be an enum and the token itself should be stored in
 
 The `AttributeValue` should be a `union` because a Token can only be of one type therefore the `AttributrValue` shoulf only be of one tyoe (obviously).
 ```rust
-enum TokenCategory {
+pub enum TokenCategory {
 	NUMBER,
 	RETURN,
 	IDENTIFIER,
@@ -108,11 +110,11 @@ enum TokenCategory {
 	RIGHT_CURLY_BRACE,
 }
 
-union AttributeValue {
+pub union AttributeValue {
 	int_val : i32,
 }
 
-struct Token {
+pub struct Token {
 	category : TokenCategory,
 	attribute_value : Option<AttributeValue>,
 	symbole_table_entry : Option<&SymbolTableEntry> // Only if using symbol table in 
@@ -120,6 +122,17 @@ struct Token {
 ```
 
 Also shared reference 
+
+### Stream Output vs Array Output
+Stream output would return tokens as the program runs with functions to get the next token being called by the parser when needed. Array output would put the tokens into a whole array and then the parser would run using the entire array.
+
+A stream would have less memory usage and if there is an error the parser would not have to parse every line. 
+
+Array could be made for testing purposes
+
+### Avoiding matching if as an identifier
+Keywords such as if and return risk being matched to an identifier instead of their actual token. To avoid this when an alphanumeric character is read the entire
+
 ## 2.2 Syntax Analyser
 
 ## 2.3 Semantic Analyser
