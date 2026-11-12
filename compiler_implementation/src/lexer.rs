@@ -1,5 +1,5 @@
-use regex::Regex;
-use std::collections::HashMap;
+/* use regex::Regex;
+use std::collections::HashMap; */
 use std::iter::Peekable;
 use std::process;
 use std::str::Chars;
@@ -29,7 +29,7 @@ pub struct Token {
 pub struct Lexer<'a> {
     input_file: &'a str,
     char_iterator: Peekable<Chars<'a>>,
-    matches: HashMap<TokenCategory, Regex>,
+    // matches: HashMap<TokenCategory, Regex>,
 }
 
 // 'a avoids copuing the string
@@ -38,7 +38,7 @@ impl<'a> Lexer<'a> {
         let lexer = Lexer {
             input_file,
             char_iterator: input_file.chars().peekable(),
-            matches: HashMap::from([
+            /* matches: HashMap::from([
                 (TokenCategory::Number, Regex::new(r"[0-9]+").unwrap()),
                 (TokenCategory::KeywordReturn, Regex::new(r"return\b").unwrap()),
                 (TokenCategory::Identifier, Regex::new(r"[A-Za-z][A-Za-z0-9]*").unwrap()),
@@ -48,7 +48,7 @@ impl<'a> Lexer<'a> {
                 (TokenCategory::LeftCurlyBrace, Regex::new(r"\{").unwrap()),
                 (TokenCategory::RightCurlyBrace, Regex::new(r"\}").unwrap()),
                 (TokenCategory::TokenError, Regex::new(r".*").unwrap()),
-            ]),
+            ]), */
         };
 
         return lexer;
@@ -125,8 +125,7 @@ impl<'a> Lexer<'a> {
             "+" => token.category = Plus,
             ")" => token.category = RightBracket,
             "(" => token.category = LeftBracket,
-            _   => eprintln!("Error! Unexpected token {} on line n", cur_lexeme),
-                                
+            _   => eprintln!("Error! Unexpected token {} on line n", cur_lexeme),                     
         }
         return token;
     }
