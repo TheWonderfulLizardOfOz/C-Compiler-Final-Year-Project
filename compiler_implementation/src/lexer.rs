@@ -35,16 +35,13 @@ pub struct Lexer<'a> {
 // 'a avoids copuing the string
 impl<'a> Lexer<'a> {
     pub fn new(input_file: &'a str) -> Self {
-        let mut lexer = Lexer {
+        let lexer = Lexer {
             input_file,
             char_iterator: input_file.chars().peekable(),
             matches: HashMap::from([
                 (TokenCategory::Number, Regex::new(r"[0-9]+").unwrap()),
                 (TokenCategory::KeywordReturn, Regex::new(r"return\b").unwrap()),
-                (
-                    TokenCategory::Identifier,
-                    Regex::new(r"[A-Za-z][A-Za-z0-9]*").unwrap(),
-                ),
+                (TokenCategory::Identifier, Regex::new(r"[A-Za-z][A-Za-z0-9]*").unwrap()),
                 (TokenCategory::KeywordInt, Regex::new(r"int\b").unwrap()),
                 (TokenCategory::Plus, Regex::new(r"\+").unwrap()),
                 (TokenCategory::SemiColon, Regex::new(r";").unwrap()),
@@ -61,6 +58,38 @@ impl<'a> Lexer<'a> {
         println!("{}", self.input_file);
     }
 
+    fn possible_identifier_state(&mut self, mut token: Token, mut cur_lexeme: String) -> Token {
+        while self.char_iterator.peek().map_or(false, |c| c.is_alphanumeric()) {
+            cur_lexeme.push(self.char_iterator.next().unwrap());
+        }
+
+        match cur_lexeme.as_str() {
+            "int" => token.category = TokenCategory::KeywordInt,
+            "return" => token.category = TokenCategory::KeywordReturn,
+            _ => { 
+                token.category = TokenCategory::Identifier;
+                token.attribute_value = Some(cur_lexeme);
+            },
+        }
+        
+        return token
+    }
+
+    fn number_state(&mut self, mut token: Token, mut cur_lexeme: String) -> Token {
+        while self.char_iterator.peek().map_or(false, |c| c.is_digit(10)) {
+             cur_lexeme.push(self.char_iterator.next().unwrap());
+        }
+        if self.char_iterator.peek().map_or(false, |c| c.is_alphabetic()) {
+            // Error state : e.g. 1011aaaa is not valid
+            cur_lexeme.push(self.char_iterator.next().unwrap());
+            eprintln!("Error on line n (line numbers not implemented): {}", cur_lexeme);
+            process::exit(1);
+        }
+        token.category = TokenCategory::Number;
+        token.attribute_value = Some(cur_lexeme);
+        return token
+    }
+
     pub fn get_next_token(&mut self) -> Token {
         use TokenCategory::*;
         let mut cur_lexeme = String::from("");
@@ -70,11 +99,7 @@ impl<'a> Lexer<'a> {
         };
 
         // find next non whitespace
-        while self
-            .char_iterator
-            .peek()
-            .map_or(false, |c| c.is_whitespace())
-        {
+        while self.char_iterator.peek().map_or(false, |c| c.is_whitespace()) {
             self.char_iterator.next();
         }
 
@@ -84,54 +109,25 @@ impl<'a> Lexer<'a> {
         }
 
         let first_char = self.char_iterator.next().unwrap();
-        let maybe_identifier = first_char.is_alphabetic();
-        let is_number = first_char.is_digit(10);
         cur_lexeme.push(first_char);
 
-        if maybe_identifier {
-            while self
-                .char_iterator
-                .peek()
-                .map_or(false, |c| c.is_alphanumeric())
-            {
-                cur_lexeme.push(self.char_iterator.next().unwrap());
-            }
-        } else if is_number {
-            while self.char_iterator.peek().map_or(false, |c| c.is_digit(10)) {
-                cur_lexeme.push(self.char_iterator.next().unwrap());
-            }
-            if self
-                .char_iterator
-                .peek()
-                .map_or(false, |c| c.is_alphabetic())
-            {
-                // Error state : e.g. 1011aaaa is not valid
-                cur_lexeme.push(self.char_iterator.next().unwrap());
-                eprintln!("Error on line n (line numbers not implemented): {}", cur_lexeme);
-                process::exit(1);
-            }               
+        if first_char.is_alphabetic() {
+            return self.possible_identifier_state(token, cur_lexeme);
+            
+        } else if first_char.is_digit(10) {
+            return self.number_state(token, cur_lexeme)
         }
 
         match cur_lexeme.as_str() {
             "}" => token.category = RightCurlyBrace,
             "{" => token.category = LeftCurlyBrace,
-            "int" => token.category = KeywordInt,
-            "return" => token.category = KeywordReturn,
             ";" => token.category = SemiColon,
             "+" => token.category = Plus,
             ")" => token.category = RightBracket,
             "(" => token.category = LeftBracket,
-            _ => if maybe_identifier || is_number {
-                    token.attribute_value = Some(cur_lexeme); 
-                    if maybe_identifier {token.category = Identifier; }
-                    else {token.category = Number;}
-                } else {
-                    eprintln!("Error! Unexpected token {} on line n", cur_lexeme);
-                    process::exit(1);
-                },
+            _   => eprintln!("Error! Unexpected token {} on line n", cur_lexeme),
+                                
         }
-        
-
         return token;
     }
 }
