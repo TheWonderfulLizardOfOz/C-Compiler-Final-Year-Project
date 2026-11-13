@@ -32,7 +32,7 @@ pub struct Lexer<'a> {
     // matches: HashMap<TokenCategory, Regex>,
 }
 
-// 'a avoids copuing the string
+// 'a avoids copying the string
 impl<'a> Lexer<'a> {
     pub fn new(input_file: &'a str) -> Self {
         let lexer = Lexer {
@@ -59,7 +59,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn possible_identifier_state(&mut self, mut token: Token, mut cur_lexeme: String) -> Token {
-        while self.char_iterator.peek().map_or(false, |c| c.is_alphanumeric()) {
+        while self.char_iterator.peek().map_or(false, |c| c.is_alphanumeric() || *c == '_') {
             cur_lexeme.push(self.char_iterator.next().unwrap());
         }
 
@@ -111,7 +111,7 @@ impl<'a> Lexer<'a> {
         let first_char = self.char_iterator.next().unwrap();
         cur_lexeme.push(first_char);
 
-        if first_char.is_alphabetic() {
+        if first_char.is_alphabetic() || first_char == '_' {
             return self.possible_identifier_state(token, cur_lexeme);
             
         } else if first_char.is_digit(10) {
@@ -125,7 +125,10 @@ impl<'a> Lexer<'a> {
             "+" => token.category = Plus,
             ")" => token.category = RightBracket,
             "(" => token.category = LeftBracket,
-            _   => eprintln!("Error! Unexpected token {} on line n", cur_lexeme),                     
+            _   => {
+                eprintln!("Error! Unexpected token {} on line n", cur_lexeme);
+                process::exit(1);
+            },                    
         }
         return token;
     }
