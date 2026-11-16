@@ -284,10 +284,11 @@ fn number_state(&mut self, mut token: Token, mut cur_lexeme: String) -> Token {
 }
 ```
 
-Unlike the `possible_identifier_state` the `number_state` assumes that the token will definitly be a number, currently it only checks for alphabet numbers and throws an error if it is, later when floats are involved will check for multiple decimal places
+Unlike the `possible_identifier_state` the `number_state` assumes that the token will definitly be a number, currently it only checks for alphabet numbers and throws an error if it is, later when floats are involved will check for multiple decimal places.
 ### 3.1.12 Testing the lexer on BasicAdd.c
 The code can be run using `cargo run --bin c_lexer ../examples/BasicAdd.c`
 
+(I have done all these test just don't have a screenshot)
 #### 3.1.12.1 Test 1 - Run Correctly on BasicAdd.c
 In the image below we can see the output that is as expected.
 ![[BasicAddLexerRes.png]]
@@ -299,9 +300,45 @@ In the image below we can see the output that is as expected.
 The lexer should reject `123123a` as this is not a valid token and therefore should report an error.
 
 #### 3.1.12.4 Test 4 -  `$`
-The lexer should reject `~` as it is not a valid lexeme for a token and should therefore report an error.
+The lexer should reject `$` as it is not a valid lexeme for a token and should therefore report an error.
+
+#### 3.1.12.5 Test 5 - Accept Identifier with Underscore
+The lexer should accept an identifier with an undersocre e.g. `main_underscore`.
+
+#### 3.1.12.6 Test 6 - No Space Between Plus
+The lexer should read `1+1` as 3 seperate tokens.
 
 ## 3.2 Syntax Analyser
+The phase where we use the parser.
+### 3.2.1 Defining the Grammar
+The grammar defined here will be adapted from section A.13 of The C Programming Language (2nd Edition)[^3], and A.3 of ISO working draft. (Note to self should probably refer to this for tokens as well).
+```ebnf
+(*External definitions*)
+<translation-unit> ::= <external-declaration>
+<external-declaration> ::= <function-definition> | <declaration>
+<function-definition> ::= <declaration-specifiers> <declarator> <function-body>
+<function-body> ::= <compound-statement>
+
+
+(*Expressions*)
+<primary-expression> ::= <identifier> | <constant> | ( <expression> )
+<postfix-expression> ::= <primary-expression> | <postfix-expression> ( ) 
+<unary-expression> ::= <postfix-expression>
+<cast-expression> ::= <unary-expression> 
+<multiplicative-expression> ::= <cast-expression>
+<additive-expression> ::= <multiplicative-expression> | <additive-expression> + <multiplicative-expression> | <cast-expression>
+
+(*Declarators*)
+<type-specifier> ::= void | int
+<function-declarator> ::= <direct-declarator> ( )
+
+(*Statements*)
+<compound-statement> ::= { block-item- list} | { }
+<block-item-list> ::= <block-item> | <block-item-list> <block-item>
+<block-item> ::= <declaration> | <unlabeled-statement>
+<jump-statement> ::= return | return <expression>
+
+```
 
 ## 3.3 Semantic Analyser
 
@@ -316,3 +353,5 @@ The lexer should reject `~` as it is not a valid lexeme for a token and should t
 # 4 References
 [^1]: Aho, Lam, Sethi, Ullman, 2014, Compilers Principles, Techniques, and Tools Second Edition
 [^2]: Andrew W.Appel, 1997, Modern Compiler Implementation in C
+[^3]: Brian Kernighan, Dennis Ritchiem, 1998, The C Programming Language (2nd Edition)
+[^4]: JeanHeyd Meneide, Freek Wiedijk, Janurary 2024, Information technology - Programming languages - C
