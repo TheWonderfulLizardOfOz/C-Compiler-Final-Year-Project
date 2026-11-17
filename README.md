@@ -1,2 +1,2 @@
-# C Compiler and Visualiser
+# C Compiler implemented in Rust
 

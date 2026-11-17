@@ -18,7 +18,7 @@ int main() {
 
 Below is an image obtained from "Compilers Principles, Techniques and Tools"[^1] detailing the phases of a compiler. These phases will be followed for development.
 
-![[CompilerPhases.png|Phases of a compiler  ]]
+![[CompilerPhases.png|Phases of a compiler  |487]]
 
 ## 3.1 Lexical Analyser
 **Token** - A pair with token name and an optional attribute  ```⟨ token-name, attribute-value ⟩```
@@ -288,10 +288,10 @@ Unlike the `possible_identifier_state` the `number_state` assumes that the token
 ### 3.1.12 Testing the lexer on BasicAdd.c
 The code can be run using `cargo run --bin c_lexer ../examples/BasicAdd.c`
 
-(I have done all these test just don't have a screenshot)
+(I have done all these test just don't have a screenshot, + I should proabably implement test cases in Rust4)
 #### 3.1.12.1 Test 1 - Run Correctly on BasicAdd.c
 In the image below we can see the output that is as expected.
-![[BasicAddLexerRes.png]]
+![[BasicAddLexerRes.png|358]]
 
 #### 3.1.12.2 Test 2 - `inti`
 `inti` should be detected as an `Identifier` and not a `KeywordInt`.
@@ -311,14 +311,19 @@ The lexer should read `1+1` as 3 seperate tokens.
 ## 3.2 Syntax Analyser
 The phase where we use the parser.
 ### 3.2.1 Defining the Grammar
-The grammar defined here will be adapted from section A.13 of The C Programming Language (2nd Edition)[^3], and A.3 of ISO working draft. (Note to self should probably refer to this for tokens as well).
+The grammar defined here will be adapted from section A.13 of The C Programming Language (2nd Edition)[^3], and A.3 of ISO working draft. (Note to self should probably refer to this for tokens as well). 
+- I also should have just done this all in one go, doing this one by one for what I need is a bit of a nightmare, on the plus side it is good practice
+	- Why did I not ask AI to do this for me instead? Because that's boring :)
+- I would research if there is a better way to do this but I am on a plane
+- There are also a few extras because testing would be useless otherwise
+- The expression chain is wtf - genuinely why? Is it precedence byt why do i need to go up the chain to get to `<expression>`
+
 ```ebnf
 (*External definitions*)
 <translation-unit> ::= <external-declaration>
 <external-declaration> ::= <function-definition> | <declaration>
 <function-definition> ::= <declaration-specifiers> <declarator> <function-body>
 <function-body> ::= <compound-statement>
-
 
 (*Expressions*)
 <primary-expression> ::= <identifier> | <constant> | ( <expression> )
@@ -327,16 +332,33 @@ The grammar defined here will be adapted from section A.13 of The C Programming 
 <cast-expression> ::= <unary-expression> 
 <multiplicative-expression> ::= <cast-expression>
 <additive-expression> ::= <multiplicative-expression> | <additive-expression> + <multiplicative-expression> | <cast-expression>
+<shift-expression> ::= <additive-expression>
+<relational-expression> ::= <shift-expression>
+<equality-expression> ::= <relational-expression>
+<AND-expression> ::= <equality-expression>
+<exclusive-OR-expression> ::= <AND-expression>
+<inclusive-OR-expression> ::= <exclusive-OR-expression>
+<logical-AND-expression> ::= <inclusive-OR-expressionj>
+<logical-OR-expression> ::= <logical-AND-expression>
+<assignment-expression> ::= <conditional-expression> 
+<expression> ::= <assignment-expression>
 
 (*Declarators*)
+<declaration-specifiers> ::= <declaration-specifier> | <declaration-specifier> <declaration-specifiers>
+<declaration-specifier> ::= <type-specifier-qualifier>
+<type-specifier-qualifier> ::= <type-specifier>
 <type-specifier> ::= void | int
+<declarator> ::= <direct-declarator>
+<direct-declarator> ::= <function-declarator> | ( <declarator> ) | <identifier> 
 <function-declarator> ::= <direct-declarator> ( )
 
 (*Statements*)
-<compound-statement> ::= { block-item- list} | { }
+<unlabeled-statement> ::= <expression-statement> | <jump-statement>
+<compound-statement> ::= { block-item-list} | { }
 <block-item-list> ::= <block-item> | <block-item-list> <block-item>
-<block-item> ::= <declaration> | <unlabeled-statement>
-<jump-statement> ::= return | return <expression>
+<block-item> ::= <unlabeled-statement>
+<expression-statement> ::= <expression> ; | ;
+<jump-statement> ::= return ; | return <expression> ;
 
 ```
 
@@ -354,4 +376,4 @@ The grammar defined here will be adapted from section A.13 of The C Programming 
 [^1]: Aho, Lam, Sethi, Ullman, 2014, Compilers Principles, Techniques, and Tools Second Edition
 [^2]: Andrew W.Appel, 1997, Modern Compiler Implementation in C
 [^3]: Brian Kernighan, Dennis Ritchiem, 1998, The C Programming Language (2nd Edition)
-[^4]: JeanHeyd Meneide, Freek Wiedijk, Janurary 2024, Information technology - Programming languages - C
+[^4]: Jean Heyd Meneide, Freek Wiedijk, Janurary 2024, ISO/IEC 9899:2024 (en) - N3220 working draft
